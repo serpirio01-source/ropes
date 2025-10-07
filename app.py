@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 PORT = int(os.environ.get('PORT', 10000))
@@ -51,3 +51,4 @@ def search():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=PORT, debug=False)
+
