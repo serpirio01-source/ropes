@@ -5,13 +5,20 @@ import pdfplumber
 from pptx import Presentation
 from openpyxl import load_workbook
 
-# ✅ Create the Flask app FIRST
 app = Flask(__name__)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 PORT = int(os.environ.get('PORT', 10000))
+
+# --- All helper functions FIRST ---
+def search_in_docx(file_path, query): ...
+def search_in_pdf(file_path, query): ...
+def search_in_pptx(file_path, query): ...
+def search_in_excel(file_path, query): ...
+
+# --- Then your routes ---
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -42,3 +49,5 @@ def search():
 
     return render_template("index.html", query=query, results=results)
 
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=PORT, debug=False)
