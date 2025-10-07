@@ -1,3 +1,17 @@
+from flask import Flask, request, render_template
+import os, re
+from docx import Document
+import pdfplumber
+from pptx import Presentation
+from openpyxl import load_workbook
+
+# ✅ Create the Flask app FIRST
+app = Flask(__name__)
+
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+PORT = int(os.environ.get('PORT', 10000))
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -27,3 +41,4 @@ def search():
                     results.append({"file": file, "matches": file_results})
 
     return render_template("index.html", query=query, results=results)
+
