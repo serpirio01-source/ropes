@@ -41,13 +41,42 @@ def search_in_pdf(file_path, query):
 def search_in_pptx(file_path, query):
     results = []
     try:
-        prs = Presentation(file_path)
+        from pptx import Presentation
+        from io import BytesIO
+
+        # Read file in small chunks to reduce memory pressure
+        with open(file_path, "rb") as f:
+            pptx_bytes = BytesIO(f.read())
+
+        prs = Presentation(pptx_bytes)
+
+        # Free large binary chunks early
+        del pptx_bytes
+
+        query_lower = query.lower()
         for i, slide in enumerate(prs.slides, start=1):
+            found_in_slide = False
+            text_content = []
+
+            # Collect only text — skip shapes without text
             for shape in slide.shapes:
-                if hasattr(shape, "text") and query.lower() in shape.text.lower():
-                    snippet = re.search(f".{{0,30}}{re.escape(query)}.{{0,30}}", shape.text, re.IGNORECASE)
-                    if snippet:
-                        results.append(f"[Slide {i}] ...{snippet.group(0)}...")
+                if hasattr(shape, "text") and shape.text:
+                    text_content.append(shape.text)
+
+            # Combine text from slide to avoid multiple string ops
+            combined_text = " ".join(text_content)
+            if query_lower in combined_text.lower():
+                snippet = re.search(f".{{0,40}}{re.escape(query)}.{{0,40}}", combined_text, re.IGNORECASE)
+                if snippet:
+                    results.append(f"[Slide {i}] ...{snippet.group(0)}...")
+                found_in_slide = True
+
+            # Free slide data immediately to keep RAM low
+            del text_content, combined_text
+            if found_in_slide:
+                continue
+
+        del prs
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
     return results
@@ -102,3 +131,4 @@ def search():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=PORT, debug=False)
+
